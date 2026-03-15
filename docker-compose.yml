@@ -1,6 +1,6 @@
 services:
   bot:
-    image: tg-session-bot
+    image: ghcr.io/ddddd12138/tg-session-bot:latest
     container_name: tg-session-bot
     restart: unless-stopped
     env_file:

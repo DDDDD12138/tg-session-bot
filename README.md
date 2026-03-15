@@ -67,12 +67,6 @@ python -m app.main
 
 ## 4. Docker 运行
 
-构建镜像：
-
-```bash
-docker build -t tg-session-bot .
-```
-
 启动容器：
 
 ```bash
