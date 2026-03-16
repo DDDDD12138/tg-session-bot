@@ -193,8 +193,10 @@ class BotApp:
             )
 
     async def handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        del context
         if not update.message or not update.effective_chat:
+            return
+
+        if not await self._should_respond_text(update, context):
             return
 
         user_text = (update.message.text or "").strip()
@@ -647,6 +649,35 @@ class BotApp:
     @staticmethod
     def _is_message_not_modified(exc: BadRequest) -> bool:
         return "message is not modified" in str(exc).lower()
+
+    async def _should_respond_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+        message = update.message
+        chat = update.effective_chat
+        if not message or not chat:
+            return False
+
+        if chat.type == "private":
+            return True
+        if chat.type not in ("group", "supergroup"):
+            return False
+
+        bot_id = context.bot.id
+        bot_username = (context.bot.username or "").lower()
+        text = message.text or ""
+
+        reply = message.reply_to_message
+        if reply and reply.from_user and reply.from_user.id == bot_id:
+            return True
+
+        for entity in message.entities or []:
+            if entity.type == "text_mention" and entity.user and entity.user.id == bot_id:
+                return True
+            if entity.type != "mention" or not bot_username:
+                continue
+            mention = text[entity.offset : entity.offset + entity.length]
+            if mention.lstrip("@").lower() == bot_username:
+                return True
+        return False
 
 
 def main() -> None:
